@@ -15,14 +15,14 @@ class ProjectScrapyItem(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
     url = Field()
-    data = Field()
-'''    price = Field()
+    #data = Field()
+    price = Field()
     date = Field()
     pieces = Field()
     surface = Field()
     ville = Field()
-    type = Field()
+    type_ = Field()
     gesc =Field()
     energie=Field()
-    description = Field()'''
+    description = Field()
 

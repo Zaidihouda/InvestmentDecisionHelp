@@ -13,13 +13,13 @@ import json
 import csv
 import codecs
 from scrapy.xlib.pydispatch import dispatcher
-
+import pandas as pd
 from scrapy import signals
 from scrapy.exporters import JsonLinesItemExporter
 from scrapy.exporters import CsvItemExporter
 
 from datetime import datetime
-
+import re
 
 class JsonLinesExportPipeline(object):
     nbLines = 0
@@ -90,6 +90,43 @@ class CsvExportPipeline(object):
         self.csv_exporter.finish_exporting()
         file = self.files.pop(spider)
         file.close()
+
+# Cassandra Pipeline
+from cassandra.cluster import Cluster
+
+class CassandraPipeline(object):
+
+    def __init__(self, cassandra_keyspace):
+        self.cassandra_keyspace = cassandra_keyspace
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(
+            cassandra_keyspace=crawler.settings.get('CASSANDRA_KEYSPACE')
+        )
+
+    def open_spider(self, spider):
+        cluster = Cluster(['localhost'])
+        self.session = cluster.connect(self.cassandra_keyspace)
+        # create scrapy_items table
+        self.session.execute("CREATE TABLE IF NOT EXISTS " + self.cassandra_keyspace + ".properties_ads ( url text , price text, date text, " +
+                                                                                       "pieces text, surface text, ville text, type_ text, "+
+                                                                                       "gesc text, energie text, description text, "+
+                                                                                       "PRIMARY KEY (url));")
+
+
+    def process_item(self, item, spider):
+        # insert item
+        var=pd.Series(["url", "price", "date", "pieces", "surface", "ville", "type_", "gesc", "energie", "description"]).str.cat(sep=', ')
+        val= pd.Series([item["url"], item["price"], item["date"], item["pieces"],
+                        item["surface"], item["ville"], item["type_"], item["gesc"]
+                           ,item["energie"], item["description"]]).str.cat(sep='\' , \'')
+        val = "\'"+val +"\'"
+
+        requ= "INSERT INTO " + self.cassandra_keyspace + ".properties_ads({v}) VALUES({vv});".format(v=var, vv=val)
+        print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA      :", requ
+        self.session.execute(requ)
+        return item
 
 
 """

@@ -71,12 +71,14 @@ DOWNLOADER_MIDDLEWARES = {
 # EXTENSIONS = {
 #    'scrapy.extensions.telnet.TelnetConsole': None,
 # }
+CASSANDRA_KEYSPACE = 'project_invest_decision'
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'project_scrapy.pipelines.JsonLinesExportPipeline': 300,
-    'project_scrapy.pipelines.CsvExportPipeline': 301,
+    'project_scrapy.pipelines.CassandraPipeline': 100,
+    #'project_scrapy.pipelines.JsonLinesExportPipeline': 300,
+    #'project_scrapy.pipelines.CsvExportPipeline': 301,
     # 'project_scrapy.pipelines.JsonItemExporter': 301,
     # 'project_scrapy.pipelines.JsonExportPipeline': 302,
 }
